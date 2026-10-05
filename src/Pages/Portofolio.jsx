@@ -1,7 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
 import PropTypes from "prop-types";
-import SwipeableViews from "react-swipeable-views";
-import { useTheme } from "@mui/material/styles";
 import AppBar from "@mui/material/AppBar";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
@@ -109,7 +107,6 @@ const techStacks = [
 ];
 
 export default function FullWidthTabs() {
-  const theme = useTheme();
   const [value, setValue] = useState(0);
   const [projects, setProjects] = useState(portfolioData.projects);
   const [certificates, setCertificates] = useState(portfolioData.certificates);
@@ -243,13 +240,9 @@ export default function FullWidthTabs() {
           </Tabs>
         </AppBar>
 
-        <SwipeableViews
-          axis={theme.direction === "rtl" ? "x-reverse" : "x"}
-          index={value}
-          onChangeIndex={setValue}
-        >
-          {/* Projects Tab */}
-          <TabPanel value={value} index={0} dir={theme.direction}>
+        {/* Projects Tab */}
+        {value === 0 && (
+          <TabPanel value={value} index={0}>
             <div className="container mx-auto flex justify-center items-center overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
                 {displayedProjects.map((project, index) => (
@@ -279,9 +272,11 @@ export default function FullWidthTabs() {
               </div>
             )}
           </TabPanel>
+        )}
 
-          {/* Certificates Tab */}
-          <TabPanel value={value} index={1} dir={theme.direction}>
+        {/* Certificates Tab */}
+        {value === 1 && (
+          <TabPanel value={value} index={1}>
             <div className="container mx-auto flex justify-center items-center overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
                 {displayedCertificates.map((certificate, index) => (
@@ -304,9 +299,11 @@ export default function FullWidthTabs() {
               </div>
             )}
           </TabPanel>
+        )}
 
-          {/* Tech Stack Tab */}
-          <TabPanel value={value} index={2} dir={theme.direction}>
+        {/* Tech Stack Tab */}
+        {value === 2 && (
+          <TabPanel value={value} index={2}>
             <div className="container mx-auto flex justify-center items-center overflow-hidden pb-6">
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 w-full">
                 {techStacks.map((stack, index) => (
@@ -321,7 +318,7 @@ export default function FullWidthTabs() {
               </div>
             </div>
           </TabPanel>
-        </SwipeableViews>
+        )}
       </Box>
     </div>
   );

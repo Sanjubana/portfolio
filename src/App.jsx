@@ -5,6 +5,10 @@ import "./index.css";
 import Navbar from "./components/Navbar";
 import Home from "./Pages/Home";
 import About from "./Pages/About";
+import Timeline from "./components/Timeline";
+import SkillsMatrix from "./components/SkillsMatrix";
+import GithubStats from "./components/GithubStats";
+import ResumeModal from "./components/ResumeModal";
 import AnimatedBackground from "./components/Background";
 import { AnimatePresence } from "framer-motion";
 import Footer from "./components/Footer";
@@ -20,6 +24,8 @@ const WelcomeScreen = lazy(() => import("./Pages/WelcomeScreen"));
 const NotFoundPage = lazy(() => import("./Pages/404"));
 
 const LandingPage = ({ showWelcome, setShowWelcome }) => {
+  const [isResumeOpen, setIsResumeOpen] = useState(false);
+
   return (
     <>
       <AnimatePresence mode="wait">
@@ -32,15 +38,27 @@ const LandingPage = ({ showWelcome, setShowWelcome }) => {
 
       {!showWelcome && (
         <>
-          <Navbar />
+          <Navbar onOpenResume={() => setIsResumeOpen(true)} />
       
-          <Home />
-          <About />
-          <Suspense fallback={<div className="h-20" />}>
-            <Portofolio />
-            <ContactPage />
-          </Suspense>
+          <main>
+            <Home onOpenResume={() => setIsResumeOpen(true)} />
+            <About onOpenResume={() => setIsResumeOpen(true)} />
+            <Timeline />
+            <SkillsMatrix />
+            <Suspense fallback={<div className="h-20" />}>
+              <Portofolio />
+              <GithubStats />
+              <ContactPage />
+            </Suspense>
+          </main>
+
           <Footer />
+
+          {/* ATS Resume Quick Modal */}
+          <ResumeModal
+            isOpen={isResumeOpen}
+            onClose={() => setIsResumeOpen(false)}
+          />
         </>
       )}
     </>
@@ -60,11 +78,10 @@ function App() {
   const [showWelcome, setShowWelcome] = useState(true);
 
   return (
-    
     <HelmetProvider>
-      <div className="pointer-events-none">
-  <AnimatedBackground />
-</div>
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <AnimatedBackground />
+      </div>
       <BrowserRouter>
         <Routes>
           {/* PUBLIC */}

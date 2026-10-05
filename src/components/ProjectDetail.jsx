@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   ArrowLeft,
   ExternalLink,
@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 import { toSlug } from "../utils/slug";
+import { supabase } from "../supabase";
+import { portfolioData } from "../data/portfolioData";
 
 const TECH_ICONS = {
   React: Globe,
@@ -123,31 +125,75 @@ const ProjectDetails = () => {
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const storedProjects = JSON.parse(localStorage.getItem("projects")) || [];
-    // Cari project berdasarkan slug yang di-generate dari Title
-    const selectedProject = storedProjects.find(
-      (p) => toSlug(p.Title) === slug,
-    );
 
-    if (selectedProject) {
-      const enhancedProject = {
-        ...selectedProject,
-        Features: selectedProject.Features || [],
-        TechStack: selectedProject.TechStack || [],
-        Github: selectedProject.Github || "https://github.com/EkiZR",
-      };
-      setProject(enhancedProject);
-    }
+    const loadProject = async () => {
+      let storedProjects = JSON.parse(localStorage.getItem("projects")) || portfolioData.projects;
+      let selectedProject = storedProjects.find(
+        (p) => toSlug(p.Title) === slug,
+      );
+
+      if (!selectedProject) {
+        selectedProject = portfolioData.projects.find(
+          (p) => toSlug(p.Title) === slug,
+        );
+      }
+
+      if (!selectedProject) {
+        try {
+          const { data, error } = await supabase.from("projects").select("*");
+          if (!error && data && data.length > 0) {
+            localStorage.setItem("projects", JSON.stringify(data));
+            selectedProject = data.find((p) => toSlug(p.Title) === slug);
+          }
+        } catch (err) {
+          console.error("Error fetching project:", err);
+        }
+      }
+
+      if (selectedProject) {
+        const enhancedProject = {
+          ...selectedProject,
+          Features: selectedProject.Features || [],
+          TechStack: selectedProject.TechStack || [],
+          Github: selectedProject.Github || portfolioData.personal.socials.github,
+        };
+        setProject(enhancedProject);
+      } else {
+        setNotFound(true);
+      }
+    };
+
+    loadProject();
   }, [slug]);
+
+  if (notFound) {
+    return (
+      <div className="min-h-screen bg-[#030014] flex flex-col items-center justify-center px-4 text-center">
+        <h2 className="text-2xl md:text-4xl font-bold text-white mb-4">
+          Project Not Found
+        </h2>
+        <p className="text-gray-400 mb-8 max-w-md">
+          The project you are looking for might have been moved, deleted, or does not exist.
+        </p>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white font-medium hover:scale-105 transition-all shadow-lg shadow-cyan-500/20"
+        >
+          <ArrowLeft className="w-5 h-5" /> Back to Home
+        </Link>
+      </div>
+    );
+  }
 
   if (!project) {
     return (
       <div className="min-h-screen bg-[#030014] flex items-center justify-center">
         <div className="text-center space-y-6 animate-fadeIn">
-          <div className="w-16 h-16 md:w-24 md:h-24 mx-auto border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+          <div className="w-16 h-16 md:w-24 md:h-24 mx-auto border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
           <h2 className="text-xl md:text-3xl font-bold text-white">
             Loading Project...
           </h2>
@@ -156,18 +202,18 @@ const ProjectDetails = () => {
     );
   }
 
-  const projectUrl = `https://ekizr.com/project/${toSlug(project.Title)}`;
+  const projectUrl = `http://localhost:5173/project/${toSlug(project.Title)}`;
 
   return (
     <>
       <Helmet>
-        <title>{project.Title} — Eki Zulfar Rachman</title>
+        <title>{project.Title} — {portfolioData.personal.name}</title>
         <meta
           name="description"
           content={
             project.Description
               ? project.Description.slice(0, 155)
-              : `Project ${project.Title} oleh Eki Zulfar Rachman — Frontend Web Developer.`
+              : `Project ${project.Title} by ${portfolioData.personal.name} — Full-Stack Developer.`
           }
         />
         <meta name="robots" content="index, follow" />
